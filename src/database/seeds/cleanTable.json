@@ -1,0 +1,13 @@
+{
+  "cleanTable": {
+    "table_name": {
+      "where": [
+        {
+          "fieldName": "created_by",
+          "operand": "=",
+          "value": 0
+        }
+      ]
+    }
+  }
+}

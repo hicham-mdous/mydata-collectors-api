@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": false,
+    //"inlineSourceMap": true,
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "noEmitOnError": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "module": "commonjs",
+    "rootDir": ".",
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "outDir": "dist",
+    "target": "es6",
+    "experimentalDecorators": true,
+    "types": ["node", "jest"],
+    "noImplicitAny": false,
+    "emitDecoratorMetadata": true,
+    "strictPropertyInitialization": true,
+    "strictNullChecks": true,
+    "rootDirs": ["src", "dist/src"]
+  },
+  "exclude": ["node_modules/**", "dist"]
+}

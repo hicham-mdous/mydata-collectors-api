@@ -1,0 +1,36 @@
+version: '3'
+services:
+  myp2-backend-reports:
+    container_name: myp2-backend-reports-prod
+    working_dir: /usr/mdo-graphql-microservices/products
+    ports:
+      - "4001:4001"
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.prod
+    command: |
+      sh -c "npm run start"
+
+  myp2-frontend:
+    container_name: myp2-frontend-prod
+    image: 936341724687.dkr.ecr.us-east-2.amazonaws.com/myp2-frontend-prod
+    ports:
+      - "3000:3000"
+
+  myp2-backend-gateway:
+    container_name: myp2-backend-gateway-prod
+    image: 936341724687.dkr.ecr.us-east-2.amazonaws.com/myp2-backend-gateway-prod
+    ports:
+      - "3999:3999"
+
+  myp2-backend-foundation:
+    container_name: myp2-backend-foundation-prod
+    image: 936341724687.dkr.ecr.us-east-2.amazonaws.com/myp2-backend-foundation-prod
+    ports:
+      - "4002:4002"
+
+  myp2-backend-main:
+    container_name: myp2-backend-main-prod
+    image: 936341724687.dkr.ecr.us-east-2.amazonaws.com/myp2-backend-main-prod
+    ports:
+      - "4000:4000"
