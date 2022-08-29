@@ -22,14 +22,14 @@ const rulesCreateUpdate = new checkit({
       message: 'ID should be a valid UUID',
     },
   ],
-  groupName: [
+  name: [
     {
       rule: 'required',
-      message: 'Group name is required',
+      message: 'Title is required',
     },
     {
       rule: 'string',
-      message: 'Group name should be a string',
+      message: 'Title should be a valid string',
     },
   ],
 });

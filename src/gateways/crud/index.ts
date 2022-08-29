@@ -1,2 +1,2 @@
-export { GroupGw } from './GroupGw';
-export { NoteGw } from './NoteGw';
+export { CollectorGw } from './collectorGw';
+export { CollectorSourceSystemGw } from './collectorSourceSystemGw';

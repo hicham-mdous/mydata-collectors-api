@@ -2,9 +2,9 @@ import { castArray } from 'lodash';
 
 import { Cache, BaseGw } from 'mdo-backend-tools';
 
-class GroupGw extends BaseGw {
-  private tableName = 'group';
-  private entityName = 'group';
+class CollectorGw extends BaseGw {
+  private tableName = 'collector';
+  private entityName = 'Collector';
 
   constructor(props) {
     super(props);
@@ -13,7 +13,6 @@ class GroupGw extends BaseGw {
       new Cache({
         table: this.tableName,
         idField: 'id',
-        where: { removedAt: null },
         db: this.getDb(),
         keyPrefix: this.tableName,
       }),
@@ -22,23 +21,18 @@ class GroupGw extends BaseGw {
 
   async list(args) {
     const { params, pagination } = args || {};
-    const { keyword, id, groupName } = params || {};
+    const { keyword, id } = params || {};
     const { limit, offset, sortBy }: any = this.getDb()?.createLimitOffsetSortBy(pagination, [
-      { name: 'groupName', order: 'asc' },
+      { name: 'id', order: 'asc' },
     ]);
 
-    const query = this.getDb()?.getBuilder(this.tableName).select('id').whereNull('removed_at').orderBy(sortBy);
-
+    const query = this.getDb()?.getBuilder(this.tableName).select('id').orderBy(sortBy);
     if (!isNaN(limit) && limit > 0) {
       query.offset(offset).limit(limit);
     }
 
     if (keyword) {
-      query.whereRaw(`group_name ILIKE ?`, `%${keyword}%`);
-    }
-
-    if (groupName) {
-      query.whereRaw(`group_name ILIKE ?`, groupName);
+      query.whereRaw(`name ILIKE ?`, `%${keyword}%`);
     }
 
     if (id) {
@@ -46,7 +40,7 @@ class GroupGw extends BaseGw {
     }
 
     const items = await query;
-
+    const items2 = await this.getMany(items.map((row) => row.id));
     return await this.getMany(items.map((row) => row.id));
   }
 
@@ -101,7 +95,7 @@ class GroupGw extends BaseGw {
       throw new Error(`No "where" received to remove ${this.entityName} record(s)`);
     }
 
-    let query = this.getDb()?.getBuilder(this.tableName).whereNull('removed_at').whereIn('id', castArray(id));
+    let query = this.getDb()?.getBuilder(this.tableName).whereIn('id', castArray(id));
 
     if (hardRemove) {
       query = query.delete(['id']);
@@ -122,4 +116,4 @@ class GroupGw extends BaseGw {
   }
 }
 
-export { GroupGw };
+export { CollectorGw };

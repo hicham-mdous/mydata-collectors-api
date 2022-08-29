@@ -2,9 +2,9 @@ import { castArray } from 'lodash';
 
 import { Cache, BaseGw } from 'mdo-backend-tools';
 
-class NoteGw extends BaseGw {
-  private tableName = 'note';
-  private entityName = 'note';
+class CollectorSourceSystemGw extends BaseGw {
+  private tableName = 'collector_source_system';
+  private entityName = 'CollectorSourceSystem';
 
   constructor(props) {
     super(props);
@@ -22,23 +22,23 @@ class NoteGw extends BaseGw {
 
   async list(args) {
     const { params, pagination } = args || {};
-    const { keyword, id, groupId } = params || {};
+    const { keyword, id, groupName } = params || {};
     const { limit, offset, sortBy }: any = this.getDb()?.createLimitOffsetSortBy(pagination, [
-      { name: 'createdAt', order: 'desc' },
+      { name: 'groupName', order: 'asc' },
     ]);
 
-    const query = this.getDb()?.getBuilder(this.tableName).select('id').whereNull('removed_at').orderBy(sortBy);
+    const query = this.getDb()?.getBuilder(this.tableName).select('id').orderBy(sortBy);
 
     if (!isNaN(limit) && limit > 0) {
       query.offset(offset).limit(limit);
     }
 
     if (keyword) {
-      query.whereRaw(`note_body ILIKE ?`, `%${keyword}%`);
+      query.whereRaw(`group_name ILIKE ?`, `%${keyword}%`);
     }
 
-    if (groupId) {
-      query.whereIn('group_id', castArray(groupId));
+    if (groupName) {
+      query.whereRaw(`group_name ILIKE ?`, groupName);
     }
 
     if (id) {
@@ -101,7 +101,7 @@ class NoteGw extends BaseGw {
       throw new Error(`No "where" received to remove ${this.entityName} record(s)`);
     }
 
-    let query = this.getDb()?.getBuilder(this.tableName).whereNull('removed_at').whereIn('id', castArray(id));
+    let query = this.getDb()?.getBuilder(this.tableName).whereIn('id', castArray(id));
 
     if (hardRemove) {
       query = query.delete(['id']);
@@ -122,4 +122,4 @@ class NoteGw extends BaseGw {
   }
 }
 
-export { NoteGw };
+export { CollectorSourceSystemGw };

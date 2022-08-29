@@ -22,20 +22,14 @@ const rulesCreateUpdate = new checkit({
       message: 'ID should be a valid UUID',
     },
   ],
-  noteTitle: [
+  name: [
     {
       rule: 'required',
-      message: 'Title is required',
+      message: 'name is required',
     },
     {
       rule: 'string',
-      message: 'Title should be a valid string',
-    },
-  ],
-  noteBody: [
-    {
-      rule: 'string',
-      message: 'Note should be a valid string',
+      message: 'name should be a string',
     },
   ],
 });

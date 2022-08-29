@@ -1,7 +1,7 @@
 import { BaseCore, STATUSES } from 'mdo-backend-tools';
 
 import { logger } from '../utils/logger';
-import { GroupGw } from '../gateways';
+import { CollectorSourceSystemGw } from '../gateways';
 import {
   validateGetByTextId,
   validateGetMany,
@@ -9,17 +9,17 @@ import {
   validateRemoveMany,
 } from './validators/commonRules';
 
-import { validateList, validateCreate, validateUpdate } from './validators/groupValidators';
+import { validateList, validateCreate, validateUpdate } from './validators/collectorSourceSystemValidators';
 
-class GroupCore extends BaseCore {
-  private groupGw: GroupGw;
+class CollectorSourceSystemCore extends BaseCore {
+  private collectorSourceSystemGw: CollectorSourceSystemGw;
 
   constructor(props) {
     super(props);
 
     //this.setNeedAuth(true);
 
-    this.groupGw = new GroupGw({ db: this.getDb(), ...props });
+    this.collectorSourceSystemGw = new CollectorSourceSystemGw({ db: this.getDb(), ...props });
   }
 
   async list(args) {
@@ -28,7 +28,7 @@ class GroupCore extends BaseCore {
       handler: async (args) => {
         const { params } = args || {};
 
-        logger.debug('Request to list groups', args);
+        logger.debug('Request to list collectorSourceSystems', args);
 
         const [checkResut] = await validateList(params);
 
@@ -36,11 +36,11 @@ class GroupCore extends BaseCore {
           return this.sendValidationFailure(checkResut);
         }
 
-        const items = await this.groupGw.list(args);
+        const items = await this.collectorSourceSystemGw.list(args);
 
         return this.send(items);
       },
-      doingWhat: 'listing groups',
+      doingWhat: 'listing collectorSourceSystems',
       hasTransaction: false,
     });
   }
@@ -51,7 +51,7 @@ class GroupCore extends BaseCore {
       handler: async (args) => {
         const { id } = args || {};
 
-        logger.debug('Request to get a group', args);
+        logger.debug('Request to get a collectorSourceSystem', args);
 
         const [checkResult] = await validateGetByTextId(args);
 
@@ -59,11 +59,11 @@ class GroupCore extends BaseCore {
           return this.sendValidationFailure(checkResult);
         }
 
-        const item = await this.groupGw.get(id);
+        const item = await this.collectorSourceSystemGw.get(id);
 
         return this.send(item ? [item] : []);
       },
-      doingWhat: 'getteing a group',
+      doingWhat: 'getteing a collectorSourceSystem',
       hasTransaction: false,
     });
   }
@@ -74,7 +74,7 @@ class GroupCore extends BaseCore {
       handler: async (args) => {
         const { id } = args || {};
 
-        logger.debug('Request to multiple groups', args);
+        logger.debug('Request to multiple collectorSourceSystems', args);
 
         const [checkResult] = await validateGetMany(args);
 
@@ -82,11 +82,11 @@ class GroupCore extends BaseCore {
           return this.sendValidationFailure(checkResult);
         }
 
-        const items = await this.groupGw.getMany(id);
+        const items = await this.collectorSourceSystemGw.getMany(id);
 
         return this.send(items);
       },
-      doingWhat: 'getting multiple groups',
+      doingWhat: 'getting multiple collectorSourceSystems',
       hasTransaction: false,
     });
   }
@@ -97,7 +97,7 @@ class GroupCore extends BaseCore {
       handler: async (args) => {
         const { params } = args || {};
 
-        logger.debug('Request to create a group', args);
+        logger.debug('Request to create a collectorSourceSystem', args);
 
         const [checkResult] = await validateCreate(params);
 
@@ -105,7 +105,7 @@ class GroupCore extends BaseCore {
           return this.sendValidationFailure(checkResult);
         }
 
-        const items = await this.groupGw.create({
+        const items = await this.collectorSourceSystemGw.create({
           params: {
             ...params,
             createdBy: this.getUserId(),
@@ -114,7 +114,7 @@ class GroupCore extends BaseCore {
 
         return this.send(items);
       },
-      doingWhat: 'creating a group',
+      doingWhat: 'creating a collectorSourceSystem',
       hasTransaction: true,
     });
   }
@@ -125,7 +125,7 @@ class GroupCore extends BaseCore {
       handler: async (args) => {
         const { id, params } = args || {};
 
-        logger.debug('Request to update a group', args);
+        logger.debug('Request to update a collectorSourceSystem', args);
 
         const [checkResult] = await validateUpdate(params);
 
@@ -133,7 +133,7 @@ class GroupCore extends BaseCore {
           return this.sendValidationFailure(checkResult);
         }
 
-        const items = await this.groupGw.update({
+        const items = await this.collectorSourceSystemGw.update({
           params: {
             ...params,
             //statusId: params.statusId !== undefined ? params.statusId : STATUSES.ACTIVE,
@@ -146,7 +146,7 @@ class GroupCore extends BaseCore {
 
         return this.send(items);
       },
-      doingWhat: 'updating a group',
+      doingWhat: 'updating a collectorSourceSystem',
       hasTransaction: true,
     });
   }
@@ -157,7 +157,7 @@ class GroupCore extends BaseCore {
       handler: async (args) => {
         const { id } = args || {};
 
-        logger.debug('Request to remove a group', args);
+        logger.debug('Request to remove a collectorSourceSystem', args);
 
         const [checkResult] = await validateRemoveByTextId(args);
 
@@ -165,20 +165,20 @@ class GroupCore extends BaseCore {
           return this.sendValidationFailure(checkResult);
         }
 
-        const items = await this.groupGw.remove({
+        const items = await this.collectorSourceSystemGw.remove({
           where: {
             id,
           },
           params: {
             //statusId: 1000000,
-            groupName: this.getDb().raw(`group_name || '~removed'`),
+            collectorSourceSystemName: this.getDb().raw(`collectorSourceSystem_name || '~removed'`),
             removedBy: this.getUserId(),
           },
         });
 
         return this.send(items);
       },
-      doingWhat: 'removing a group',
+      doingWhat: 'removing a collectorSourceSystem',
       hasTransaction: true,
     });
   }
@@ -189,7 +189,7 @@ class GroupCore extends BaseCore {
       handler: async (args) => {
         const { id } = args || {};
 
-        logger.debug('Request to remove multiple groups', args);
+        logger.debug('Request to remove multiple collectorSourceSystems', args);
 
         const [checkResult] = await validateRemoveMany(args);
 
@@ -197,23 +197,23 @@ class GroupCore extends BaseCore {
           return this.sendValidationFailure(checkResult);
         }
 
-        const items = await this.groupGw.remove({
+        const items = await this.collectorSourceSystemGw.remove({
           where: {
             id,
           },
           params: {
             //statusId: 1000000,
-            groupName: this.getDb().raw(`group_name || '~removed'`),
+            collectorSourceSystemName: this.getDb().raw(`collectorSourceSystem_name || '~removed'`),
             removedBy: this.getUserId(),
           },
         });
 
         return this.send(items);
       },
-      doingWhat: 'removing multiple groups',
+      doingWhat: 'removing multiple collectorSourceSystems',
       hasTransaction: true,
     });
   }
 }
 
-export { GroupCore };
+export { CollectorSourceSystemCore };
