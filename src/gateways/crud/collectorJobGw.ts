@@ -1,10 +1,10 @@
 import { castArray } from 'lodash';
-
 import { Cache, BaseGw } from 'mdo-backend-tools';
+import { scheduledJobs, Job} from 'node-schedule';
 
-class CollectorSourceSystemGw extends BaseGw {
-  private tableName = 'collector_source_system';
-  private entityName = 'CollectorSourceSystem';
+class CollectorJobGw extends BaseGw {
+  private tableName = 'collector_job';
+  private entityName = 'CollectorJob';
 
   constructor(props) {
     super(props);
@@ -27,7 +27,6 @@ class CollectorSourceSystemGw extends BaseGw {
     ]);
 
     const query = this.getDb()?.getBuilder(this.tableName).select('id').orderBy(sortBy);
-
     if (!isNaN(limit) && limit > 0) {
       query.offset(offset).limit(limit);
     }
@@ -41,7 +40,6 @@ class CollectorSourceSystemGw extends BaseGw {
     }
 
     const items = await query;
-
     return await this.getMany(items.map((row) => row.id));
   }
 
@@ -53,13 +51,8 @@ class CollectorSourceSystemGw extends BaseGw {
     }
 
     const objects = castArray(params);
-    const toInsert = objects.map((item: any) => ({
-      ...item,
-      createdAt: this.getDh().dbUtcNow(),
-    }));
 
-    const items = await this.getDb()?.getBuilder(this.tableName).insert(toInsert).returning(['*']);
-
+    const items = await this.getDb()?.getBuilder(this.tableName).insert(objects).returning(['*']);
     return items;
   }
 
@@ -115,6 +108,20 @@ class CollectorSourceSystemGw extends BaseGw {
 
     return upd;
   }
-}
 
-export { CollectorSourceSystemGw };
+  // async getMany(ids: string[]) {
+  //   const collectorJobs: Job[] = Object.keys(scheduledJobs)
+  //   collectorJobs.map( job => {
+  //     id: job.name,
+  //     name: job.name,
+  //     collector: null,
+  //     running: true,
+  //     scheduled: true,
+  //     nextInvocationTime: job.nextInvocation(),
+  //     fireTime: null
+  //   })
+
+  //}
+} 
+
+export { CollectorJobGw };

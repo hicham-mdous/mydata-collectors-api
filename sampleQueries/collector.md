@@ -11,8 +11,8 @@ Returns a list of notes according to filter parameters and pagination.
 #### Query
 
 ```graphql
-query NoteList($params: NoteFilter, $pagination: PaginationAndSortingInput) {
-  noteList(params: $params, pagination: $pagination) {
+query CollectorList($params: CollectorFilter, $pagination: PaginationAndSortingInput) {
+  collectorList(params: $params, pagination: $pagination) {
     code
     errors {
       name
@@ -20,10 +20,12 @@ query NoteList($params: NoteFilter, $pagination: PaginationAndSortingInput) {
     }
     data {
       id
-      noteTitle
-      noteBody
-      createdAt
-      updatedAt
+      name
+      destinationFilePath
+      collectorSourceSystem {
+        id
+        description
+      }
     }
   }
 }
@@ -35,7 +37,6 @@ query NoteList($params: NoteFilter, $pagination: PaginationAndSortingInput) {
 {
   "params": {
     "keyword": "",
-    "groupId": "e2ec7da1-1a67-4e4e-83a6-d2bd8ee19c85"
   },
   "pagination": {}
 }

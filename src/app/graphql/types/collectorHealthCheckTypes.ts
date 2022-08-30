@@ -1,20 +1,20 @@
 import { gql } from 'apollo-server';
 
 const typeDefs = gql`
-  type XyzMicroserviceHealth {
+  type CollectorHealthCheck {
     date: String
     version: String
   }
 
-  type XyzMicroserviceHealthResult implements Result {
+  type CollectorHealthCheckResult implements Result {
     code: Int
     errors: [ErrorItem!]
-    data: [XyzMicroserviceHealth]
+    data: [CollectorHealthCheck]
   }
 
   type Query {
     "Query to check health status of the Xyz microservice"
-    xyzMicroserviceHealth: XyzMicroserviceHealthResult
+    collectorHealthCheck: CollectorHealthCheckResult
   }
 `;
 

@@ -40,7 +40,6 @@ class CollectorGw extends BaseGw {
     }
 
     const items = await query;
-    const items2 = await this.getMany(items.map((row) => row.id));
     return await this.getMany(items.map((row) => row.id));
   }
 

@@ -8,7 +8,7 @@ import pck from '../../package.json';
  * Name of class must have suffix `MicroserviceCore` and have one method `health`
  * The `health` method must return current date and version number
  */
-class XyzMicroserviceCore extends BaseCore {
+class CollectorHealthCheckCore extends BaseCore {
   private dh = new DateTimeHelpers();
 
   constructor(props) {
@@ -16,11 +16,11 @@ class XyzMicroserviceCore extends BaseCore {
     this.setNeedAuth(false);
   }
 
-  async health(args) {
+  async healthCheck(args) {
     return this.runAction({
       args,
       handler: async (args) => {
-        logger.log(`Request for the XYZ microservice health check`, args);
+        logger.log(`Request for the Collectors microservice health check`, args);
 
         return this.send([
           {
@@ -29,10 +29,10 @@ class XyzMicroserviceCore extends BaseCore {
           },
         ]);
       },
-      doingWhat: 'checking the XYZ microservice health',
+      doingWhat: 'checking the Collectors microservice health',
       hasTransaction: false,
     });
   }
 }
 
-export { XyzMicroserviceCore };
+export { CollectorHealthCheckCore };

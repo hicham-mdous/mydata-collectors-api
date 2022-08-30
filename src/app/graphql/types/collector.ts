@@ -24,6 +24,7 @@ const typeDefs = gql`
     name: String
     fileType: String
     collectorStatusId: Int
+    collectorSourceSystemId: Int
   }
 
   input CollectorFilter {
@@ -40,7 +41,7 @@ const typeDefs = gql`
 
   type Query {
     collectorList(params: CollectorFilter, pagination: PaginationAndSortingInput): CollectorResult
-    collectoreGet(id: ID!): CollectorResult
+    collectorGet(id: ID!): CollectorResult
     collectorGetMany(id: [ID!]): CollectorResult
   }
 
@@ -48,7 +49,7 @@ const typeDefs = gql`
     collectorCreate(params: CollectorInput): CollectorResult
     collectorUpdate(id: ID!, params: CollectorInput): CollectorResult
     collectorRemove(id: ID!): CollectorResult
-    collectoreRemoveMany(id: [ID!]): CollectorResult
+    collectorRemoveMany(id: [ID!]): CollectorResult
   }
 `;
 

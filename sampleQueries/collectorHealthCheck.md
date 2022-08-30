@@ -6,7 +6,7 @@ This API should be used to check if it is running. The API will return an array 
 
 ```
 query {
-  xyzMicroserviceHealth {
+  collectorHealthCheck{
     code
     errors {
       name

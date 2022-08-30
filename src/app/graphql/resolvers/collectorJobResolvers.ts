@@ -1,42 +1,42 @@
 import { RESULT_CODES } from 'mdo-backend-tools';
 
-const core = 'collectorCore';
+const core = 'collectorJobCore';
 
 const resolvers = {
   Query: {
-    collectorList(parent, args, context) {
+    collectorJobList(parent, args, context) {
       return context[core].list(args);
     },
-    collectorGet(parent, args, context) {
+    collectorJobGet(parent, args, context) {
       return context[core].get(args);
     },
-    collectorGetMany(parent, args, context) {
+    collectorJobGetMany(parent, args, context) {
       return context[core].getMany(args);
     },
   },
   Mutation: {
-    collectorCreate(parent, args, context) {
+    collectorJobCreate(parent, args, context) {
       return context[core].create(args);
     },
-    collectorUpdate(parent, args, context) {
+    collectorJobUpdate(parent, args, context) {
       return context[core].update(args);
     },
-    collectorRemove(parent, args, context) {
+    collectorJobRemove(parent, args, context) {
       return context[core].remove(args);
     },
-    collectorRemoveMany(parent, args, context) {
+    collectorJobRemoveMany(parent, args, context) {
       return context[core].removeMany(args);
     },
   },
-  collector: {
-    async collectorSourceSystem(parent, args, context) {
-      const { collectorSourceSystemId } = parent || {};
+  collectorJob: {
+    async collector(parent, args, context) {
+      const { collectorId } = parent || {};
 
-      if (!collectorSourceSystemId) {
+      if (!collectorId) {
         return null;
       }
 
-      const result = await context['collectorSourceSystemCore'].get({ id: collectorSourceSystemId });
+      const result = await context['collectorJobCore'].get({ id: collectorId });
 
       return result.code === RESULT_CODES.OK && result.data && result.data[0] ? result.data[0] : null;
     },
