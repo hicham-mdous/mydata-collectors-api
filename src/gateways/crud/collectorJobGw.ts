@@ -15,8 +15,15 @@ class CollectorJobGw extends BaseGw {
         idField: 'id',
         db: this.getDb(),
         keyPrefix: this.tableName,
+        cacheTtl: 10
       }),
     );
+  }
+
+  async get(args) {
+    const { id } = args || {};
+    const query = this.getDb()?.getBuilder(this.tableName).select('*').where({ id }).first();
+    return await query;
   }
 
   async list(args) {
@@ -108,20 +115,6 @@ class CollectorJobGw extends BaseGw {
 
     return upd;
   }
-
-  // async getMany(ids: string[]) {
-  //   const collectorJobs: Job[] = Object.keys(scheduledJobs)
-  //   collectorJobs.map( job => {
-  //     id: job.name,
-  //     name: job.name,
-  //     collector: null,
-  //     running: true,
-  //     scheduled: true,
-  //     nextInvocationTime: job.nextInvocation(),
-  //     fireTime: null
-  //   })
-
-  //}
 } 
 
 export { CollectorJobGw };

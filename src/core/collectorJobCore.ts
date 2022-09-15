@@ -1,7 +1,7 @@
-import { BaseCore, STATUSES } from 'mdo-backend-tools';
+import { BaseCore } from 'mdo-backend-tools';
 
 import { logger } from '../utils/logger';
-import { CollectorJobGw } from '../gateways';
+import { CollectorJobGw, CollectorEcsGw, CollectorGw } from '../gateways';
 import {
   validateGetByTextId,
   validateGetMany,
@@ -11,9 +11,14 @@ import {
 
 import { validateList, validateCreate, validateUpdate } from './validators/collectorValidators';
 import { scheduledJobs, Job} from 'node-schedule';
+import { getNetworkConfiguration, getOverrides } from 'utils'
+import { mydataSettings, COLLECTOR_PENDING, COLLECTOR_RUNNING } from '../boundary';
 
 class CollectorJobCore extends BaseCore {
   private collectorJobGw: CollectorJobGw;
+  private collectorGw: CollectorGw;
+  private collectorEcsGw: CollectorEcsGw
+  private networkConfiguration
 
   constructor(props) {
     super(props);
@@ -21,6 +26,8 @@ class CollectorJobCore extends BaseCore {
     //this.setNeedAuth(true);
 
     this.collectorJobGw = new CollectorJobGw({ db: this.getDb(), ...props });
+    this.collectorGw = new CollectorGw({ db: this.getDb(), ...props });
+    this.collectorEcsGw = new CollectorEcsGw({});
   }
 
   async list(args) {
@@ -42,7 +49,7 @@ class CollectorJobCore extends BaseCore {
         console.log(enrichedItems)
         return this.send(enrichedItems);
       },
-      doingWhat: 'listing Collectors',
+      doingWhat: 'listing CollectorJobs',
       hasTransaction: false,
     });
   }
@@ -52,8 +59,7 @@ class CollectorJobCore extends BaseCore {
       args,
       handler: async (args) => {
         const { id } = args || {};
-
-        logger.debug('Request to get a Collector', args);
+        logger.debug('Request to get a CollectorJob', args);
 
         const [checkResult] = await validateGetByTextId(args);
 
@@ -61,11 +67,11 @@ class CollectorJobCore extends BaseCore {
           return this.sendValidationFailure(checkResult);
         }
 
-        const item = await this.collectorJobGw.get(id);
+        const item = this.collectorJobGw.get(id);
 
         return this.send(item ? [item] : []);
       },
-      doingWhat: 'getteing a Collector',
+      doingWhat: 'getting a CollectorJob',
       hasTransaction: false,
     });
   }
@@ -76,7 +82,7 @@ class CollectorJobCore extends BaseCore {
       handler: async (args) => {
         const { id } = args || {};
 
-        logger.debug('Request to multiple Collectors', args);
+        logger.debug('Request to multiple CollectorJobs', args);
 
         const [checkResult] = await validateGetMany(args);
 
@@ -88,7 +94,7 @@ class CollectorJobCore extends BaseCore {
 
         return this.send(items);
       },
-      doingWhat: 'getting multiple Collectors',
+      doingWhat: 'getting multiple CollectorJobs',
       hasTransaction: false,
     });
   }
@@ -101,14 +107,9 @@ class CollectorJobCore extends BaseCore {
 
         logger.debug('Request to create a CollectorJob', args);
 
-        // const [checkResult] = await validateCreate(params);
-
-        // if (checkResult !== true) {
-        //   return this.sendValidationFailure(checkResult);
-        // }
-
         const items = await this.collectorJobGw.create({params});
-        this.scheduleJobs({ items })
+        //this.scheduleAll({ items })
+        //this.collectorEcsGw.run({});
 
         return this.send(items);
       },
@@ -211,29 +212,123 @@ class CollectorJobCore extends BaseCore {
     });
   }
 
-  async enrichJobs(args) {
+  async collectorJobSchedule(args) {
+    logger.debug('collectorJobSchedule',args)
+    const networkConfiguration =  await getNetworkConfiguration()
+    const collectorJobs = await this.collectorJobGw.list(args);
+    const collectors = await this.collectorGw.list({});
+    collectorJobs.forEach( collectorJob => {
+      const collector = collectors.filter( collector => collector.id == collectorJob.collectorId).shift()
+      this.scheduleSingleCollectorJob({collectorJob,collector,networkConfiguration})
+    })
+  }
+
+  async collectorJobCancel(args) {
+    const { id } = args
+    logger.debug('collectorJobCancel',args)
+    const collectorJobs = await this.collectorJobGw.list(args);
+    collectorJobs.forEach(collectorJob => {
+      if(scheduledJobs[collectorJob.name]) {
+          scheduledJobs[collectorJob.name].cancel()
+      } else {
+        logger.debug(collectorJob.name,'is already not scheduled!')
+      }
+    });
+
+  }
+
+  async scheduleAll() {
+      logger.debug('sechduleAll collectorjobs')
+      await this.collectorJobSchedule({})
+  }
+  
+
+  async scheduleSingleCollectorJob(args) {
+    let { id,collectorJob, collector, networkConfiguration } = args
+     
+    if( !collectorJob ) {
+      collectorJob = await this.collectorJobGw.get(id);
+    }
+
+    if( !networkConfiguration ) {
+        networkConfiguration =  await getNetworkConfiguration()
+    }
+
+    if( !collector ) {
+      collector = await this.collectorGw.get(collectorJob.collectorId);
+    }
+    if( !this.isCollectorJobScheduled({collectorJob}) ) {
+      const overrides = getOverrides({ cpu: collectorJob.cpu, memory: collectorJob.memory, collectorName:collector.name,type: collectorJob.type})
+      const taskDefinition = `${mydataSettings.app}-${collectorJob.type}-${mydataSettings.service}-${mydataSettings.environment}`
+      const params = {
+        cluster: mydataSettings.cluster,
+        group:`${collectorJob.type}:${collectorJob.name}`,
+        startedBy: mydataSettings.collectorManager,
+        count: 1,
+        launchType: mydataSettings.launchType,
+        networkConfiguration,
+        overrides,
+        taskDefinition
+      }
+      let job = new Job(collectorJob.name, async() => await this.runCollectorJob({params,collectorJob}))
+      job.schedule(collectorJob.cron)
+      this.collectorJobGw.update({params:{ scheduled:true }, where:{ id: collectorJob.id } }) 
+    } else {
+      logger.debug(collectorJob.name,'already scheduled!')
+    }
+  }
+  
+  async runCollectorJob(args) {
+    let { collectorJob } = args
+    try {
+      collectorJob = this.enrichJobs({items:[collectorJob]}).shift()
+      if(! await this.isCollectorJobAboutToRun(args)) {
+        logger.debug(collectorJob.name,'is about to run now')
+        collectorJob.running = COLLECTOR_PENDING
+        await this.updateCollectorJob({ collectorJob })
+        const data = await this.collectorEcsGw.runEcsTask(args)
+      } 
+      else {
+          logger.debug(collectorJob.name,'is already running or about to run! skip this time')
+      }
+
+    } catch( error ) {
+
+    }
+  } 
+
+  async updateCollectorJob(args) {
+    const { collectorJob } = args
+    const { running, lastInvocationTime, nextInvocationTime } = collectorJob
+    await this.collectorJobGw.update({params:{ running , lastInvocationTime, nextInvocationTime }, where:{ id: collectorJob.id } })
+  }
+
+  async isCollectorJobAboutToRun(args) {
+    let { collectorJob } = args
+    collectorJob = await this.collectorJobGw.get(collectorJob);
+    return collectorJob.running === COLLECTOR_PENDING || collectorJob.running === COLLECTOR_RUNNING
+  }
+
+  isCollectorJobScheduled(args) {
+  const { collectorJob } = args
+  if(scheduledJobs[collectorJob.name]) return true
+  return false
+
+  }
+
+  enrichJobs(args) {
     let { items } = args
     let enrichedItems = items.map( item => {
       let job = scheduledJobs[item.name]
-      console.log(job)
       item.running = job['running']
       item.scheduled = false
-      item.nextInvocationTime = job.nextInvocation().toString()
+      item.lastInvocationTime = item.nextInvocationTime
+      item.nextInvocationTime = job.nextInvocation().toISOString()
       return item;
     })
     return enrichedItems
   }
 
-  async scheduleJobs(args) {
-      let { items }= args
-      items.forEach( item => {
-        let job = new Job(item.name, async () => {console.log('start job',item.name)})
-        job.schedule('* * * * *')
-        item.running = job['running']
-        item.nextInvocationTime = job.nextInvocation().toString()
-        item.scheduled = true
-      })
-  }  
 }
 
 export { CollectorJobCore };

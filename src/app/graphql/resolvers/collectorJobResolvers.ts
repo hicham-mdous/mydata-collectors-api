@@ -5,6 +5,7 @@ const core = 'collectorJobCore';
 const resolvers = {
   Query: {
     collectorJobList(parent, args, context) {
+      console.log('collectorJobList')
       return context[core].list(args);
     },
     collectorJobGet(parent, args, context) {
@@ -27,6 +28,12 @@ const resolvers = {
     collectorJobRemoveMany(parent, args, context) {
       return context[core].removeMany(args);
     },
+    collectorJobSchedule(parent, args, context) {
+      return context[core].collectorJobSchedule(args);
+    },
+    collectorJobCancel(parent, args, context) {
+      return context[core].collectorJobCancel(args);
+    },
   },
   collectorJob: {
     async collector(parent, args, context) {
@@ -36,7 +43,7 @@ const resolvers = {
         return null;
       }
 
-      const result = await context['collectorJobCore'].get({ id: collectorId });
+      const result = await context[core].get({ id: collectorId });
 
       return result.code === RESULT_CODES.OK && result.data && result.data[0] ? result.data[0] : null;
     },

@@ -4,9 +4,13 @@ const typeDefs = gql`
   type CollectorJob @key(fields: "id") {
     id: ID
     name: String
+    type: String
     collector: Collector
+    cpu: String
+    memory: String
     running: Int
     scheduled: Boolean
+    cron: String
     nextInvocationTime: String
     lastInvocationTime: String
   }
@@ -40,6 +44,8 @@ const typeDefs = gql`
     collectorJobUpdate(id: ID!, params: CollectorJobInput): CollectorJobResult
     collectorJobRemove(id: ID!): CollectorJobResult
     collectorJobRemoveMany(id: [ID!]): CollectorJobResult
+    collectorJobSchedule(params: CollectorJobFilter, pagination: PaginationAndSortingInput):CollectorJobResult
+    collectorJobCancel(id: [ID!]): CollectorJobResult
   }
 `;
 
