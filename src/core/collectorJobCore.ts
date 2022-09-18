@@ -259,7 +259,7 @@ class CollectorJobCore extends BaseCore {
     }
     if( !this.isCollectorJobScheduled({collectorJob}) ) {
       const overrides = getOverrides({ cpu: collectorJob.cpu, memory: collectorJob.memory, collectorName:collector.name,type: collectorJob.type})
-      const taskDefinition = `${mydataSettings.app}-${collectorJob.type}-${mydataSettings.service}-${mydataSettings.environment}`
+      const taskDefinition = `${mydataSettings.app}-${collectorJob.type}-${mydataSettings.service}-${mydataSettings.environment}-task`
       const params = {
         cluster: mydataSettings.cluster,
         group:`${collectorJob.type}:${collectorJob.name}`,
